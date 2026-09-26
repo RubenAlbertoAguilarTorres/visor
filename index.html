@@ -2,92 +2,156 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Visor de Carnet</title>
 
-    <!-- PDF.js de Mozilla -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        html, body {
+
+        html,
+        body {
             width: 100%;
-            height: 100%;
-            background-color: #525659;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            min-height: 100%;
+            background: #525659;
         }
-        #pdf-container {
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px 0;
+        }
+
+        #contenedor {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px 0;
+            justify-content: center;
+            padding: 0 10px;
         }
-        canvas {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            margin-bottom: 12px;
-            max-width: 95%;
-            height: auto !important;
-            background-color: #ffffff;
+
+        #documento {
+            display: block;
+            width: 100%;
+            max-width: 850px;
+            height: auto;
+
+            background: white;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+
+            user-select: none;
+            -webkit-user-select: none;
+
+            -webkit-touch-callout: none;
+
+            pointer-events: auto;
         }
+
         #loading {
-            color: #ffffff;
-            font-family: system-ui, -apple-system, sans-serif;
-            margin-top: 45vh;
+            color: white;
+            font-family: Arial, sans-serif;
             font-size: 16px;
+            margin-top: 40vh;
+            text-align: center;
+        }
+
+        #error {
+            display: none;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 30vh;
+            padding: 20px;
         }
     </style>
 </head>
+
 <body>
 
-    <div id="loading">Cargando documento...</div>
-    <div id="pdf-container"></div>
+    <div id="loading">
+        Cargando documento...
+    </div>
+
+    <div id="error">
+        No se pudo cargar el documento.
+    </div>
+
+    <div id="contenedor">
+        <img
+            id="documento"
+            alt="Documento"
+            draggable="false"
+            style="display:none;"
+        >
+    </div>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
         const params = new URLSearchParams(window.location.search);
         const fileId = params.get('id');
 
-        if (fileId) {
-            // Descarga el PDF directo evitando la interfaz de Google
-            const pdfUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://drive.google.com/uc?id=' + fileId + '&export=download');
+        const loading = document.getElementById('loading');
+        const documento = document.getElementById('documento');
+        const error = document.getElementById('error');
 
-            pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
-                document.getElementById('loading').style.display = 'none';
-                const container = document.getElementById('pdf-container');
+        if (!fileId) {
 
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    pdf.getPage(pageNum).then(page => {
-                        const viewport = page.getViewport({ scale: 1.5 });
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            error.textContent = 'No se especificó un ID válido.';
 
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-
-                        container.appendChild(canvas);
-
-                        page.render({
-                            canvasContext: context,
-                            viewport: viewport
-                        });
-                    });
-                }
-            }).catch(err => {
-                document.getElementById('loading').innerText = 'Error al cargar el archivo. Verifica el acceso en Google Drive.';
-            });
         } else {
-            document.getElementById('loading').innerText = 'No se especificó un ID de documento válido.';
+
+            /*
+             * Google Drive genera una imagen de vista previa
+             * de la primera página del PDF.
+             *
+             * No abrimos el PDF ni el visor de Google.
+             */
+            const imagenUrl =
+                'https://drive.google.com/thumbnail?id=' +
+                encodeURIComponent(fileId) +
+                '&sz=w2000';
+
+            documento.src = imagenUrl;
+
+            documento.onload = function () {
+
+                loading.style.display = 'none';
+                documento.style.display = 'block';
+
+            };
+
+            documento.onerror = function () {
+
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent =
+                    'No se pudo cargar el documento. Verifica que el archivo de Google Drive sea público.';
+
+            };
         }
+
+        /*
+         * Evitar menú contextual sobre la imagen.
+         */
+        documento.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        /*
+         * Evitar arrastrar la imagen.
+         */
+        documento.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
     </script>
+
 </body>
 </html>
