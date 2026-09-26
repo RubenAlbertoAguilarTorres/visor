@@ -24,13 +24,12 @@
     <iframe id="visor-pdf" allow="autoplay"></iframe>
 
     <script>
-        // Captura el parámetro ?id= de la URL
         const params = new URLSearchParams(window.location.search);
         const fileId = params.get('id');
 
         if (fileId) {
-            // Carga la transmisión directa dentro de tu visor estático
-            document.getElementById('visor-pdf').src = 'https://drive.google.com/file/d/' + fileId + '/preview';
+            // Usa el visor de embebido directo de Google que no solicita login ni selección de cuenta
+            document.getElementById('visor-pdf').src = 'https://docs.google.com/viewer?srcid=' + fileId + '&pid=explorer&efh=false&a=v&chrome=false&embedded=true';
         } else {
             document.body.innerHTML = '<div style="color:white;text-align:center;margin-top:40vh;font-family:sans-serif;"><h3>No se especificó un documento válido.</h3></div>';
         }
