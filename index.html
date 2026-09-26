@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Documento de Identificación</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #333333;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="visor-pdf" allow="autoplay"></iframe>
+
+    <script>
+        // Captura el parámetro ?id= de la URL
+        const params = new URLSearchParams(window.location.search);
+        const fileId = params.get('id');
+
+        if (fileId) {
+            // Carga la transmisión directa dentro de tu visor estático
+            document.getElementById('visor-pdf').src = 'https://drive.google.com/file/d/' + fileId + '/preview';
+        } else {
+            document.body.innerHTML = '<div style="color:white;text-align:center;margin-top:40vh;font-family:sans-serif;"><h3>No se especificó un documento válido.</h3></div>';
+        }
+    </script>
+</body>
+</html>
